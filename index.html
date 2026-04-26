@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Personal Experiment — M.J.A.</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --gold: #c9a84c; --copper: #b87333; --blue: #7ab8d4;
+        --deep: #0c0906; --warm1: #14110d; --text: #d4c4a0;
+        --dim: #6b5f48; --white: #f0e8d4;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+        background: var(--deep); color: var(--text);
+        font-family: 'Cormorant Garamond', Georgia, serif;
+        min-height: 100vh; display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        padding: 40px 20px;
+    }
+
+    .wrap { max-width: 480px; width: 100%; text-align: center; }
+
+    h1 {
+        font-family: 'Cinzel', serif; font-weight: 400;
+        font-size: clamp(1.2rem, 3vw, 1.8rem);
+        letter-spacing: 0.2em; color: var(--white);
+        margin-bottom: 8px;
+    }
+    .sub {
+        font-size: 0.68rem; letter-spacing: 0.4em;
+        text-transform: uppercase; color: var(--dim);
+        margin-bottom: 50px;
+    }
+
+    /* ── Layers ─────────────────────────────────────── */
+    .layers { display: flex; flex-direction: column; gap: 10px; margin-bottom: 40px; }
+
+    .layer {
+        background: var(--warm1);
+        border: 1px solid rgba(201,168,76,0.12);
+        border-radius: 2px; padding: 16px 20px;
+        display: flex; align-items: center; gap: 16px;
+        transition: border-color 0.4s, box-shadow 0.4s;
+        position: relative; overflow: hidden;
+    }
+    .layer::before {
+        content:''; position:absolute; top:0; left:0;
+        width: 2px; height: 100%;
+    }
+    .layer.creation::before { background: var(--blue); }
+    .layer.heart::before    { background: var(--copper); }
+    .layer.binaural::before { background: var(--gold); }
+
+    .layer.active-creation { border-color: rgba(122,184,212,0.4); box-shadow: 0 0 20px rgba(122,184,212,0.06); }
+    .layer.active-heart    { border-color: rgba(184,115,51,0.4);  box-shadow: 0 0 20px rgba(184,115,51,0.06); }
+    .layer.active-binaural { border-color: rgba(201,168,76,0.4);  box-shadow: 0 0 20px rgba(201,168,76,0.06); }
+
+    .layer-icon { font-size: 1.4rem; flex-shrink: 0; }
+    .layer-info { flex: 1; text-align: left; }
+    .layer-name {
+        font-family: 'Cinzel', serif; font-size: 0.6rem;
+        letter-spacing: 0.3em; text-transform: uppercase; margin-bottom: 2px;
+    }
+    .creation .layer-name { color: var(--blue); }
+    .heart    .layer-name { color: var(--copper); }
+    .binaural .layer-name { color: var(--gold); }
+    .layer-freq { font-size: 1.1rem; font-weight: 300; color: var(--white); }
+    .layer-note { font-size: 0.68rem; color: var(--dim); font-style: italic; margin-top: 2px; }
+
+    /* Volume */
+    .layer-vol { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .layer-vol input {
+        width: 70px; height: 2px; -webkit-appearance: none;
+        appearance: none; background: rgba(201,168,76,0.2);
+        border-radius: 1px; cursor: pointer;
+    }
+    .layer-vol input::-webkit-slider-thumb {
+        -webkit-appearance: none; width: 12px; height: 12px;
+        border-radius: 50%; background: var(--gold); cursor: pointer;
+    }
+    .layer-vol span { font-size: 0.62rem; color: var(--dim); width: 28px; text-align: right; }
+
+    /* ── Status ─────────────────────────────────────── */
+    .status-wrap { margin-bottom: 36px; }
+    .status-label {
+        font-family: 'Cinzel', serif; font-size: 0.58rem;
+        letter-spacing: 0.4em; text-transform: uppercase;
+        color: var(--dim); margin-bottom: 8px;
+    }
+    .status-bar-wrap {
+        height: 2px; background: rgba(201,168,76,0.1);
+        border-radius: 1px; overflow: hidden; margin-bottom: 10px;
+    }
+    .status-bar {
+        height: 100%; width: 0%;
+        background: linear-gradient(90deg, var(--copper), var(--blue), var(--gold));
+        transition: width 1s ease;
+    }
+    .status-msg {
+        font-size: 0.75rem; color: var(--dim);
+        font-style: italic; letter-spacing: 0.1em; min-height: 1.4em;
+    }
+
+    /* ── Waveform ────────────────────────────────────── */
+    .wave-wrap {
+        background: var(--deep); border: 1px solid rgba(201,168,76,0.1);
+        border-radius: 2px; overflow: hidden; margin-bottom: 28px;
+    }
+    #exp-wave { display: block; width: 100%; height: 90px; }
+
+    /* ── Buttons ─────────────────────────────────────── */
+    .btns { display: flex; gap: 12px; justify-content: center; margin-bottom: 28px; }
+    .btn {
+        font-family: 'Cinzel', serif; font-size: 0.62rem;
+        letter-spacing: 0.3em; text-transform: uppercase;
+        padding: 13px 28px; border-radius: 1px;
+        border: 1px solid var(--gold); cursor: pointer;
+        background: transparent; color: var(--gold); transition: all 0.25s;
+    }
+    .btn:hover { background: rgba(201,168,76,0.08); }
+    .btn.primary { background: var(--gold); color: var(--deep); font-weight: 700; }
+    .btn.primary:hover { background: #e8c97a; box-shadow: 0 0 24px rgba(201,168,76,0.3); }
+    .btn.stop { border-color: var(--dim); color: var(--dim); }
+    .btn.stop:hover { border-color: var(--copper); color: var(--copper); }
+
+    /* ── Note ────────────────────────────────────────── */
+    .hp {
+        display: flex; align-items: center; gap: 10px;
+        padding: 12px 16px; background: var(--warm1);
+        border: 1px solid rgba(201,168,76,0.08); border-radius: 2px;
+        font-size: 0.75rem; color: var(--dim); font-style: italic;
+        margin-bottom: 16px;
+    }
+
+    .note {
+        font-size: 0.78rem; color: var(--dim); font-style: italic;
+        line-height: 1.9; text-align: center;
+        border-top: 1px solid rgba(201,168,76,0.08);
+        padding-top: 20px; margin-top: 10px;
+    }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+    <h1>Personal Experiment</h1>
+    <p class="sub">Creation · Heart · Binaural</p>
+
+    <div class="layers">
+
+        <!-- Creation -->
+        <div class="layer creation" id="layer-creation">
+            <div class="layer-icon">🌍☀️</div>
+            <div class="layer-info">
+                <div class="layer-name">Creation Frequency</div>
+                <div class="layer-freq">7.83 · 78.3 Hz</div>
+                <div class="layer-note">Earth + Sun — the field that made life possible</div>
+            </div>
+            <div class="layer-vol">
+                <input type="range" id="vol-creation" min="0" max="100" value="60">
+                <span id="vv-creation">60%</span>
+            </div>
+        </div>
+
+        <!-- Heart -->
+        <div class="layer heart" id="layer-heart">
+            <div class="layer-icon">❤️</div>
+            <div class="layer-info">
+                <div class="layer-name">Heart Frequency</div>
+                <div class="layer-freq">19 · 3 · 22 Hz</div>
+                <div class="layer-note">Your Triple-Lock — the biological engine</div>
+            </div>
+            <div class="layer-vol">
+                <input type="range" id="vol-heart" min="0" max="100" value="60">
+                <span id="vv-heart">60%</span>
+            </div>
+        </div>
+
+        <!-- Binaural -->
+        <div class="layer binaural" id="layer-binaural">
+            <div class="layer-icon">🧠</div>
+            <div class="layer-info">
+                <div class="layer-name">Binaural Layer</div>
+                <div class="layer-freq">7.83 Hz beat</div>
+                <div class="layer-note">Schumann entrainment — left/right ear separation</div>
+            </div>
+            <div class="layer-vol">
+                <input type="range" id="vol-binaural" min="0" max="100" value="45">
+                <span id="vv-binaural">45%</span>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Status -->
+    <div class="status-wrap">
+        <p class="status-label">Field Status</p>
+        <div class="status-bar-wrap">
+            <div class="status-bar" id="status-bar"></div>
+        </div>
+        <p class="status-msg" id="status-msg">Ready</p>
+    </div>
+
+    <!-- Waveform -->
+    <div class="wave-wrap">
+        <canvas id="exp-wave"></canvas>
+    </div>
+
+    <div class="hp">
+        <span>🎧</span>
+        <span>Headphones essential. Sit quietly. Give it at least 3 minutes.</span>
+    </div>
+
+    <div class="btns">
+        <button class="btn primary" id="btn-play">▶ Begin</button>
+        <button class="btn stop" id="btn-stop">■ Stop</button>
+    </div>
+
+    <p class="note">
+        Creation field rises first.<br>
+        Heart frequency enters after.<br>
+        Binaural layer holds throughout.<br><br>
+        This is for you. Not for the site.
+    </p>
+
+</div>
+
+<script>
+let ac = null, nodes = {}, playing = false;
+
+function getAC() {
+    if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+    if (ac.state === 'suspended') ac.resume();
+    return ac;
+}
+
+function makeSine(freq) {
+    const a = getAC();
+    const osc = a.createOscillator();
+    const gainNode = a.createGain();
+    osc.type = 'sine'; osc.frequency.value = freq;
+    gainNode.gain.value = 0;
+    osc.connect(gainNode); gainNode.connect(a.destination); osc.start();
+    return gainNode; // return the GainNode directly — .gain is the AudioParam
+}
+
+function makeBinaural(freqL, freqR) {
+    const a = getAC();
+    const merge = a.createChannelMerger(2);
+    const gainNode = a.createGain(); gainNode.gain.value = 0;
+    const oscL = a.createOscillator(); oscL.type = 'sine'; oscL.frequency.value = freqL;
+    const oscR = a.createOscillator(); oscR.type = 'sine'; oscR.frequency.value = freqR;
+    const gL = a.createGain(); gL.gain.value = 1;
+    const gR = a.createGain(); gR.gain.value = 1;
+    oscL.connect(gL); gL.connect(merge, 0, 0);
+    oscR.connect(gR); gR.connect(merge, 0, 1);
+    merge.connect(gainNode); gainNode.connect(a.destination);
+    oscL.start(); oscR.start();
+    return gainNode; // return the GainNode directly
+}
+
+function initAll() {
+    if (nodes.earth) return;
+    nodes.earth   = makeSine(200);
+    nodes.sun     = makeSine(78.3);
+    nodes.sun2    = makeSine(81.0);
+    nodes.hr      = makeSine(38);
+    nodes.breath  = makeSine(48);
+    nodes.brain   = makeSine(44);
+    nodes.binaural = makeBinaural(200, 207.83);
+}
+
+function getVol(id) { return document.getElementById(id).value / 100; }
+
+function play() {
+    initAll();
+    const t = getAC().currentTime;
+    const vc = getVol('vol-creation');
+    const vh = getVol('vol-heart');
+    const vb = getVol('vol-binaural');
+
+    // Pin all to 0 — prevents pop
+    Object.values(nodes).forEach(n => n.gain.setValueAtTime(0, t));
+
+    // Creation rises first
+    nodes.earth.gain.linearRampToValueAtTime(vc * 0.16, t + 3.0);
+    nodes.sun.gain.linearRampToValueAtTime(vc * 0.14, t + 3.5);
+    nodes.sun2.gain.linearRampToValueAtTime(vc * 0.06, t + 3.5);
+
+    // Heart enters after
+    nodes.hr.gain.linearRampToValueAtTime(vh * 0.15, t + 6.0);
+    nodes.breath.gain.linearRampToValueAtTime(vh * 0.16, t + 7.0);
+    nodes.brain.gain.linearRampToValueAtTime(vh * 0.13, t + 8.0);
+
+    // Binaural throughout
+    nodes.binaural.gain.linearRampToValueAtTime(vb * 0.08, t + 2.0);
+
+    playing = true;
+    updateLayers();
+    startStatus();
+}
+
+function stop() {
+    if (!ac) return;
+    const t = getAC().currentTime;
+    Object.values(nodes).forEach(n => {
+        n.gain.setValueAtTime(n.gain.value, t);
+        n.gain.linearRampToValueAtTime(0, t + 2.0);
+    });
+    playing = false;
+    updateLayers();
+    stopStatus();
+}
+
+document.getElementById('btn-play').addEventListener('click', play);
+document.getElementById('btn-stop').addEventListener('click', stop);
+
+// Live volume
+[['vol-creation','vv-creation',['earth','sun','sun2'],0.16],
+ ['vol-heart','vv-heart',['hr','breath','brain'],0.15],
+ ['vol-binaural','vv-binaural',['binaural'],0.08]
+].forEach(([slId, vvId, nodeKeys, scale]) => {
+    document.getElementById(slId).addEventListener('input', function() {
+        document.getElementById(vvId).textContent = this.value + '%';
+        if (!playing) return;
+        const t = getAC().currentTime;
+        const v = this.value / 100;
+        nodeKeys.forEach(k => {
+            if (nodes[k]) nodes[k].gain.linearRampToValueAtTime(v * scale, t + 0.3);
+        });
+    });
+});
+
+function updateLayers() {
+    [['layer-creation','active-creation'],
+     ['layer-heart','active-heart'],
+     ['layer-binaural','active-binaural']
+    ].forEach(([id, cls]) => {
+        const el = document.getElementById(id);
+        playing ? el.classList.add(cls) : el.classList.remove(cls);
+    });
+}
+
+// Status
+let statusTimer = null, statusVal = 0;
+const statusMsgs = [
+    'Initialising...',
+    'Creation field rising...',
+    'Earth and Sun locking...',
+    'Heart frequency entering...',
+    'Triple-Lock engaging...',
+    'Binaural entrainment active...',
+    'All fields aligned'
+];
+
+function startStatus() {
+    statusVal = 0;
+    document.getElementById('status-msg').textContent = statusMsgs[0];
+    statusTimer = setInterval(() => {
+        statusVal = Math.min(100, statusVal + Math.random() * 6 + 3);
+        document.getElementById('status-bar').style.width = statusVal + '%';
+        const step = Math.min(6, Math.floor(statusVal / 16));
+        document.getElementById('status-msg').textContent = statusMsgs[step];
+        if (statusVal >= 100) clearInterval(statusTimer);
+    }, 800);
+}
+
+function stopStatus() {
+    clearInterval(statusTimer); statusVal = 0;
+    document.getElementById('status-bar').style.width = '0%';
+    document.getElementById('status-msg').textContent = 'Ready';
+}
+
+// Waveform
+const wc = document.getElementById('exp-wave');
+wc.width = wc.offsetWidth || 480; wc.height = 90;
+const wctx = wc.getContext('2d');
+let wt = 0;
+
+const LAYERS = [
+    { freq: 78.3, col: 'rgba(201,168,76,0.65)',  amp: 0.22, body: 'sun' },
+    { freq: 62.6, col: 'rgba(122,184,212,0.6)',  amp: 0.26, body: 'earth' },
+    { freq: 38,   col: 'rgba(184,115,51,0.65)',  amp: 0.22, body: 'hr' },
+    { freq: 44,   col: 'rgba(201,168,76,0.5)',   amp: 0.20, body: 'brain' },
+    { freq: 48,   col: 'rgba(184,115,51,0.5)',   amp: 0.22, body: 'breath' },
+];
+
+function drawWave() {
+    const W = wc.width, H = wc.height;
+    wctx.fillStyle = '#0c0906'; wctx.fillRect(0, 0, W, H);
+
+    if (!playing) {
+        wctx.strokeStyle = 'rgba(201,168,76,0.1)';
+        wctx.lineWidth = 1;
+        wctx.beginPath(); wctx.moveTo(0, H/2); wctx.lineTo(W, H/2); wctx.stroke();
+        requestAnimationFrame(drawWave); return;
+    }
+
+    LAYERS.forEach(({ freq, col, amp }) => {
+        wctx.beginPath();
+        for (let x = 0; x < W; x++) {
+            const t = (wt + x) * 0.012;
+            const y = H/2 + Math.sin(2 * Math.PI * freq * t * 0.04) * H * amp * 0.42;
+            x === 0 ? wctx.moveTo(x, y) : wctx.lineTo(x, y);
+        }
+        wctx.strokeStyle = col; wctx.lineWidth = 1.2; wctx.stroke();
+    });
+
+    // Sum
+    wctx.beginPath();
+    for (let x = 0; x < W; x++) {
+        const t = (wt + x) * 0.012;
+        const sum = LAYERS.reduce((a, { freq, amp }) => a + Math.sin(2 * Math.PI * freq * t * 0.04) * amp, 0);
+        const y = H/2 + (sum / LAYERS.length) * H * 0.36;
+        x === 0 ? wctx.moveTo(x, y) : wctx.lineTo(x, y);
+    }
+    wctx.strokeStyle = 'rgba(240,232,212,0.9)'; wctx.lineWidth = 2; wctx.stroke();
+
+    wt += 1.5;
+    requestAnimationFrame(drawWave);
+}
+drawWave();
+</script>
+</body>
+</html>
